@@ -67,13 +67,7 @@ class DatabaseSpecification
     @password = uri.password
     @host = uri.host
     @port = uri.port
-    @options = CGI.parse(uri.query || '').to_a.map do |k, v|
-      n = v.first
-      if n.match(/\d+/)
-        n = n.to_i
-      end
-      [k.to_sym, n]
-    end
+    @options = parse_query(uri.query)
 
     if @adapter == 'sqlite'
       @database = [@host, @database].join('/')
@@ -156,5 +150,15 @@ class DatabaseSpecification
       k.to_s + '=' + v.to_s
     end.join('&')
     q unless q.empty?
+  end
+
+  def parse_query(q)
+    CGI.parse(q || '').to_a.map do |k, v|
+      n = v.first
+      if n.match(/\d+/)
+        n = n.to_i
+      end
+      [k.to_sym, n]
+    end
   end
 end
