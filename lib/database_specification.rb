@@ -2,15 +2,28 @@ require "database_specification/version"
 require 'uri'
 require 'cgi'
 
+# Translate beween different ways of describing a database connection
+# Currently supports
+#
+# - ActiveRecord hash
+# - Sequel hash
+# - URL (Sequel/Heroku)
+#
+# Construct an object with the appropriate from-database constructor,
+# and then use the appopriate to-database accessor.
 class DatabaseSpecification
+  # The database driver type: postgres, sqlite, etc.
   attr_reader :adapter
+  # Database name within the server
   attr_reader :database
   attr_reader :user
   attr_reader :password
   attr_reader :host
   attr_reader :port
+  # Misc extra options, ex: pool, timeout
   attr_reader :options
 
+  # How we store the information internally
   STANDARD = [
     :adapter,
     :database,
@@ -21,18 +34,27 @@ class DatabaseSpecification
     :port,
   ]
 
+  # ActiveRecord constructor
+  # @param [Hash] config ActiveRecord style db hash
   def self.active_record(config)
     new.from_active_record(config)
   end
 
+  # Sequel hash constructor
+  # @param [Hash] config Sequel style db hash
   def self.sequel(config)
     new.from_sequel(config)
   end
 
+  # URL constructor (Sequel/Heroku)
+  # @param [String] url
   def self.url(url)
     new.from_url(url)
   end
 
+  # Performs the work of setting up from an ActiveRecord style hash
+  # @param [Hash] config ActiveRecord style db hash
+  # @return [DatabaseSpecification]
   def from_active_record(config)
     @adapter = ar_to_sequel(config[:adapter])
     @database = config[:database]
@@ -44,6 +66,9 @@ class DatabaseSpecification
     self
   end
 
+  # Performs the work of setting up from a Sequel style hash
+  # @param [Hash] config Sequel style db hash
+  # @return [DatabaseSpecification]
   def from_sequel(config)
     @adapter = config[:adapter]
     @database = config[:database]
@@ -55,6 +80,9 @@ class DatabaseSpecification
     self
   end
 
+  # Performs the work of setging up from a url
+  # @param [String] url
+  # @return [DatabaseSpecification]
   def from_url(url)
     begin
       uri = URI.parse(url)
@@ -76,6 +104,7 @@ class DatabaseSpecification
     self
   end
 
+  # @return [Hash] ActiveRecord style hash
   def active_record
     Hash[[
       [:adapter, sequel_to_ar(adapter)],
@@ -87,6 +116,7 @@ class DatabaseSpecification
     ].select {|x| x.last} + options]
   end
 
+  # @return [Hash] Sequel style hash
   def sequel
     Hash[[
       [:adapter, adapter],
@@ -98,10 +128,12 @@ class DatabaseSpecification
     ].select {|x| x.last} + options]
   end
 
+  # @return [String] DB url with query paramters
   def url
     [url_bare, query].compact.join('?')
   end
 
+  # @return [String] DB url without query parameters
   def url_bare
     if adapter == 'postgres'
       h = host || 'localhost'
