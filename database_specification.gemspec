@@ -9,21 +9,18 @@ Gem::Specification.new do |s|
   s.email       = ["git@JustinLove.name"]
   s.homepage    = ""
   s.summary     = %q{Translate between different ways of specifying a database connection - eg AR-URL}
-  s.description = %q{TODO: Write a gem description}
+  s.description = %q{Translate between different ways of specifying a database connection.  Translates between ActiveRecord-hash, Sequel-hash, and urls used by Sequel and Heroku}
 
   s.rubyforge_project = "database_specification"
 
-  s.files         = <<MANIFEST
-Gemfile
-Rakefile
+  s.files         = <<MANIFEST.split("\n")
 lib/database_specification.rb
 lib/database_specification/version.rb
 MANIFEST
-  s.test_files    = <<TEST_MANIFEST
+  s.test_files    = <<TEST_MANIFEST.split("\n")
+spec/database_specification_spec.rb
 TEST_MANIFEST
   s.require_paths = ["lib"]
-
-  #s.add_runtime_dependency ""
 
   s.add_development_dependency "bundler"
   s.add_development_dependency "rspec"
